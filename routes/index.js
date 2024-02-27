@@ -1,5 +1,7 @@
 const express = require('express');
+const axios = require('axios');
 const session = require('express-session');
+
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const collection = require('./config.js');
@@ -13,8 +15,144 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({extended: false}));
 
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser'); // Ensure body-parser is used for form data
 
 
+const updateUserBalance = async (name, newUsdBalance, newBtcBalance) => {
+    // Find the user by ID and update their balance
+    await collection.findByIdAndUpdate(name, {
+      $set: {
+        usdBalance: newUsdBalance,
+        btcBalance: newBtcBalance
+      }
+    });
+  };
+
+
+// Connect to MongoDB
+mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
+
+const historySchema = new mongoose.Schema({
+  timestamp: Date,
+  data: Object,
+});
+const History = mongoose.model('History', historySchema);
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.set('view engine', 'ejs');
+
+// Explore Market Endpoint
+app.get('/explore-market', async (req, res) => {
+    try {
+        const response = await axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=IBM&apikey=${process.env.ALPHA_VANTAGE_API_KEY}`);
+        const marketData = response.data["Time Series (Daily)"];
+        res.render('explore-market', { marketData: marketData });
+    } catch (error) {
+        console.error('Error fetching market data:', error);
+        res.status(500).send('Error fetching market data');
+    }
+});
+
+// Save Data Endpoint
+app.post('/save-data', async (req, res) => {
+    const { timestamp, data } = req.body;
+
+    const newHistoryEntry = new History({
+        timestamp: new Date(timestamp),
+        data: JSON.parse(data)
+    });
+
+    try {
+        await newHistoryEntry.save();
+        res.redirect('/history');
+    } catch (error) {
+        console.error('Error saving data:', error);
+        res.status(500).send('Error saving data');
+    }
+});
+
+// History Endpoint
+app.get('/history', async (req, res) => {
+    try {
+        const historyData = await History.find({});
+        res.render('history', { historyData });
+    } catch (error) {
+        console.error('Error retrieving history:', error);
+        res.status(500).send('Error retrieving history');
+    }
+});
+
+app.get('/get-btc-rate', async (req, res) => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data && data.bitcoin && data.bitcoin.usd) {
+        res.json({ rate: data.bitcoin.usd });
+      } else {
+        throw new Error('Malformed API response');
+      }
+    } catch (error) {
+      console.error('Error fetching BTC rate:', error.message);
+      res.status(500).json({ error: 'Error fetching BTC rate' });
+    }
+  });
+app.post('/convert-currency', async (req, res) => {
+    const userId = req.user.name; // Assuming the user's ID is stored in the session
+    const { amount, convertTo } = req.body; // Amount to convert and direction of conversion
+  
+    try {
+      // Get the current BTC rate
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+      const data = await response.json();
+      const btcRate = data.bitcoin.usd;
+  
+      // Retrieve the user's current balances
+      const { balance, btc } = await getUserBalance(userId);
+  
+      let newUsdBalance, newBtcBalance;
+  
+      // Perform the conversion
+      if (convertTo === 'BTC') {
+        // Ensure the user has enough USD to convert
+        if (balance < amount) {
+          return res.status(400).json({ error: 'Insufficient USD balance.' });
+        }
+        newUsdBalance = balance - amount;
+        newBtcBalance = btc + (amount / btcRate);
+      } else {
+        // Ensure the user has enough BTC to convert
+        const btcAmount = amount / btcRate;
+        if (btc < btcAmount) {
+          return res.status(400).json({ error: 'Insufficient BTC balance.' });
+        }
+        newUsdBalance = balance + (btcAmount * btcRate);
+        newBtcBalance = btc - btcAmount;
+      }
+      const userId = req.user._id; // Get the user's ID from the session or decoded JWT
+const convertedUsdAmount = newUsdBalance; // The result of the currency conversion from USD to BTC
+const convertedBtcAmount = newBtcBalance; // The result of the currency conversion from BTC to USD
+
+// Call the updateUserBalance function with the new balances
+await updateUserBalance(userId, convertedUsdAmount, convertedBtcAmount);
+res.json({
+    message: 'Balance updated successfully',
+    newUsdBalance: convertedUsdAmount,
+    newBtcBalance: convertedBtcAmount
+  });
+    } catch (error) {
+      console.error('Error during currency conversion:', error);
+      res.status(500).json({ error: 'Error during currency conversion' });
+    }
+  });
+  
 app.use(session({
     secret: 'your_secret_key',
     resave: false,
@@ -37,7 +175,7 @@ app.get('/', isAuthenticated, async (req, res) => {
         const user = req.user; // Adjust this according to how you store user information
 
         // Render the home template and pass the items, lang, and user variables
-        res.render("home", { items, lang, user:req.session.user });
+        res.render("home", { items, lang, user:req.session.user,req });
     } catch (err) {
         console.error('Error retrieving items:', err);
         res.status(500).send('Internal Server Error');
@@ -113,10 +251,12 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.get("/explore-market", isAuthenticated, (req, res) => {
-    // Render Explore Market page for all authenticated users
-    res.render("explore-market");
-});
+
+
+
+
+
+
 
 // Assuming you have a route handler for the 'office' page
 // Assuming you have a route handler for the 'office' page
@@ -176,36 +316,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 app.use('/admin', adminRoutes);
-app.get('/explore-market', isAuthenticated, async (req, res) => {
-    try {
-        // Fetch items from the database
-        const items = await Item.find();
 
-        // Pass the user object to the explore-market view
-        res.render('explore-market', { user: req.session.user, items });
-    } catch (error) {
-        console.error('Error fetching items:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
+// Set up static files directory
+app.use(express.static('public'));
 
-// Implement the function to fetch market information
-async function fetchMarketInfo() {
-    // Replace this with actual code to fetch market information from your data source
-    const marketInfo = {
-        // Sample market data
-        stocks: [
-            { symbol: 'AAPL', price: 150.25 },
-            { symbol: 'GOOGL', price: 2800.75 },
-            // Add more stock data as needed
-        ],
-        // Add more market data as needed
-    };
+// Set the view engine to EJS
+app.set('view engine', 'ejs');
 
-    return marketInfo;
-}
-
-
+// Route to render the Explore Market page
 const port = 3000;
 app.listen(port, () => {
     console.log('Server running on port : 3000');

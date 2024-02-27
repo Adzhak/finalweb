@@ -1,5 +1,3 @@
-// localizationMiddleware.js
-
 const fs = require('fs');
 
 // Function to load translation files

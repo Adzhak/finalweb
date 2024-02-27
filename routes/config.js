@@ -24,6 +24,10 @@ const LoginSchema = new mongoose.Schema({
     balance:{
         type: Number,
         default: 1000
+    },
+    btc:{
+        type:Number,
+        default:0
     }
 });
 

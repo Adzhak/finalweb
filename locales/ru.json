@@ -6,5 +6,7 @@
     "navbar.signup":"Регистрация",
     "navbar.login":"Войти",
     "office.title":"Добро пожаловать в личный кабинет",
-    "office.balance":"Ваш баланс"
+    "office.balance":"Ваш баланс",
+    "navbar.welcome":"Добро пожаловать на Finance",
+    "navbar.news":"Наши новости"
 }

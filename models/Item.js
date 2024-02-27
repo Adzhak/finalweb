@@ -17,18 +17,21 @@ const itemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    picture1: {
-        type: String,
-        required: true
-    },
-    picture2:{
-        type: String,
-        required: true
-    },
-    picture3:{
-        type: String,
-        required: true
-    }
+
+        picture1: {
+            type: String,
+            required: true
+        },
+        picture2:{
+            type: String,
+            required: true
+        },
+        picture3:{
+            type: String,
+            required: true
+        }
+
+    
     ,
     createdAt: {
         type: Date,

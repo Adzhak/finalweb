@@ -6,5 +6,7 @@
     "navbar.signup":"Signup",
     "navbar.login":"Login",
     "office.title":"Welome to the private office",
-    "office.balance":"Your balance"
+    "office.balance":"Your balance",
+    "navbar.welcome":"Welcome to Finance",
+    "navbar.news":"Our News"
 }

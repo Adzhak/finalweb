@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home Page</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="navbar">
@@ -25,21 +25,54 @@
         </ul>
     </nav>
     <!-- Example form for language selection -->
-<form action="/change-language" method="POST">
-    
-    <button type="submit" name="lang" value="en">English</button>
-    <button type="submit" name="lang" value="ru">Русский</button>
-</form>
-<h1>Welcome to the Main Page</h1>
-
+    <form id="languageForm" method="POST">
+        <!-- Add a hidden input field to store the current URL -->
+        <input type="hidden" id="redirectUrl" name="redirectUrl" value="<%= req.originalUrl %>">
+        <!-- Add buttons to select the language -->
+        <button type="button" onclick="changeLanguage('en')">English</button>
+        <button type="button" onclick="changeLanguage('ru')">Русский</button>
+    </form>
+    <script>
+        // Function to change the language
+        const changeLanguage = async (lang) => {
+            try {
+                const redirectUrl = document.getElementById('redirectUrl').value;
+                const response = await fetch('/change-language', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ lang, redirectUrl })
+                });
+                if (response.ok) {
+                    // Language changed successfully, reload the page
+                    window.location.reload();
+                } else {
+                    console.error('Failed to change language');
+                }
+            } catch (error) {
+                console.error('Error changing language:', error);
+            }
+        };
+    </script>
+    <center>
+<h1><%= __('navbar.welcome') %></h1>
+<h2><%= __('navbar.news') %></h2>
+</center>
 <% items.forEach(item => { %>
     <div class="item">
         <div class="carousel">
             <div class="carousel-inner">
-                <% if (item.pictures && item.pictures.length > 0) { %>
-                    <% item.pictures.forEach((picture, index) => { %>
-                        <img src="<%= picture %>" class="carousel-item<%= index === 0 ? ' active' : '' %>">
-                    <% }) %>
+                <% if (item.picture1 || item.picture2 || item.picture3) { %>
+                    <% if (item.picture1) { %>
+                        <img src="<%= item.picture1 %>" class="carousel-item">
+                    <% } %>
+                    <% if (item.picture2) { %>
+                        <img src="<%= item.picture2 %>" class="carousel-item">
+                    <% } %>
+                    <% if (item.picture3) { %>
+                        <img src="<%= item.picture3 %>" class="carousel-item">
+                    <% } %>
                 <% } else { %>
                     <p>No pictures available</p>
                 <% } %>
@@ -48,12 +81,12 @@
             <button class="carousel-next" onclick="nextSlide(this)">&#10095;</button>
         </div>
         <div class="item-info">
-            <% if (lang === 'en') { %>
-                <h2><%= item.name_en %></h2>
-                <p><%= item.description_en %></p>
-            <% } else { %>
+            <% if (req.cookies.lang === 'ru') { %>
                 <h2><%= item.name_ru %></h2>
                 <p><%= item.description_ru %></p>
+            <% } else { %>
+                <h2><%= item.name_en %></h2>
+                <p><%= item.description_en %></p>
             <% } %>
         </div>
     </div>

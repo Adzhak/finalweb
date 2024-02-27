@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Data History</title>
+</head>
+<body>
+    <h1>History</h1>
+<ul>
+    <% historyData.forEach(entry => { %>
+        <li><%= entry.timestamp %>: <%= JSON.stringify(entry.data) %></li>
+    <% }) %>
+</ul>
+</body>
+</html>

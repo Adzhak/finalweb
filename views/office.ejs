@@ -7,7 +7,50 @@
 </head>
 <body>
     <h1>Welcome to Your Office, <%= user.name %>!</h1>
-    <p>Your Balance: <%= user.balance %></p>
-    <!-- Add any additional content here -->
+    <p>Your USDT Balance: <%= user.balance %></p>
+    <p>Your BTC Balance: <%= user.btc %></p>
+    <script>
+        // Function to get the current BTC rate and display it
+        function getCurrentRate() {
+          fetch('/get-btc-rate')
+            .then(response => response.json())
+            .then(data => {
+              const rate = data.rate;
+              document.getElementById('currentRate').innerText = `Current BTC Rate: 1 BTC = ${rate} USD`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+      
+        // Function to convert currency
+        function convertCurrency(toBTC) {
+          const amount = document.getElementById('amount').value; // Get the user input
+          fetch('/get-btc-rate')
+            .then(response => response.json())
+            .then(data => {
+              const rate = data.rate;
+              let result = 0;
+              if (toBTC) {
+                result = amount / rate; // Convert USD to BTC
+              } else {
+                result = amount * rate; // Convert BTC to USD
+              }
+              document.getElementById('result').innerText = `Converted amount: ${result.toFixed(8)}`; // Limit the decimal places for BTC
+            })
+            .catch(error => console.error('Error:', error));
+        }
+      
+        // Call getCurrentRate when the page loads to display the current BTC rate
+        window.onload = getCurrentRate;
+      </script>
+      
+      <!-- Example form in office.ejs -->
+      <form>
+        <div id="currentRate">Loading current BTC Rate...</div>
+        <input type="number" id="amount" placeholder="Enter amount" required>
+        <button type="button" onclick="convertCurrency(true)">Convert USD to BTC</button>
+        <button type="button" onclick="convertCurrency(false)">Convert BTC to USD</button>
+      </form>
+      
+      <div id="result"></div>
 </body>
 </html>
