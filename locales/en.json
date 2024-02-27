@@ -1,0 +1,10 @@
+{
+    "navbar.adminPanel": "Admin Panel",
+    "navbar.exploreMarket": "Explore Market",
+    "navbar.office": "Office",
+    "navbar.logout": "Logout",
+    "navbar.signup":"Signup",
+    "navbar.login":"Login",
+    "office.title":"Welome to the private office",
+    "office.balance":"Your balance"
+}

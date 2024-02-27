@@ -1,0 +1,93 @@
+<!-- home.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Finances</div>
+        <ul class="navbar-links">
+            <% if (user) { %>
+                <li><a href="/explore-market"><%= __('navbar.exploreMarket') %></a></li>
+                <li><a href="/office"><%= __('navbar.office') %></a></li>
+                <% if (user.isAdmin) { %> <!-- Check if user is admin -->
+                    <li><a href="/admin-panel"><%= __('navbar.adminPanel') %></a></li> <!-- Display Admin Panel link for admins -->
+                <% } %>
+                <li><a href="/logout"><%= __('navbar.logout') %></a></li> <!-- Logout button for all users -->
+            <% } else { %>
+                <li><a href="/login"><%= __('navbar.login') %></a></li>
+                <li><a href="/signup"><%= __('navbar.signup') %></a></li>
+            <% } %>
+        </ul>
+    </nav>
+    <!-- Example form for language selection -->
+<form action="/change-language" method="POST">
+    
+    <button type="submit" name="lang" value="en">English</button>
+    <button type="submit" name="lang" value="ru">Русский</button>
+</form>
+<h1>Welcome to the Main Page</h1>
+
+<% items.forEach(item => { %>
+    <div class="item">
+        <div class="carousel">
+            <div class="carousel-inner">
+                <% if (item.pictures && item.pictures.length > 0) { %>
+                    <% item.pictures.forEach((picture, index) => { %>
+                        <img src="<%= picture %>" class="carousel-item<%= index === 0 ? ' active' : '' %>">
+                    <% }) %>
+                <% } else { %>
+                    <p>No pictures available</p>
+                <% } %>
+            </div>
+            <button class="carousel-prev" onclick="prevSlide(this)">&#10094;</button>
+            <button class="carousel-next" onclick="nextSlide(this)">&#10095;</button>
+        </div>
+        <div class="item-info">
+            <% if (lang === 'en') { %>
+                <h2><%= item.name_en %></h2>
+                <p><%= item.description_en %></p>
+            <% } else { %>
+                <h2><%= item.name_ru %></h2>
+                <p><%= item.description_ru %></p>
+            <% } %>
+        </div>
+    </div>
+<% }) %>
+
+    <script>
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.carousel-item');
+
+        function showSlides() {
+            slides.forEach((slide) => {
+                slide.style.display = 'none';
+            });
+            slides[slideIndex].style.display = 'block';
+        }
+
+        function nextSlide(button) {
+            slides[slideIndex].style.display = 'none';
+            slideIndex++;
+            if (slideIndex >= slides.length) {
+                slideIndex = 0;
+            }
+            slides[slideIndex].style.display = 'block';
+        }
+
+        function prevSlide(button) {
+            slides[slideIndex].style.display = 'none';
+            slideIndex--;
+            if (slideIndex < 0) {
+                slideIndex = slides.length - 1;
+            }
+            slides[slideIndex].style.display = 'block';
+        }
+
+        showSlides();
+    </script>
+</html>

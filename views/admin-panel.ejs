@@ -1,0 +1,89 @@
+<!-- views/admin-panel.ejs -->
+
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="/admin-style.css">
+</head>
+<body>
+    <h2>Welcome to the Admin Panel</h2>
+
+    <h3>Add New Item</h3>
+    <form action="/admin/add-item" method="POST">
+        <!-- English Name -->
+        <label for="name_en">Name (English):</label><br>
+        <input type="text" id="name_en" name="name_en" required><br>
+        
+        <!-- Russian Name -->
+        <label for="name_ru">Name (Russian):</label><br>
+        <input type="text" id="name_ru" name="name_ru" required><br>
+        
+        <!-- English Description -->
+        <label for="description_en">Description (English):</label><br>
+        <textarea id="description_en" name="description_en" required></textarea><br>
+        
+        <!-- Russian Description -->
+        <label for="description_ru">Description (Russian):</label><br>
+        <textarea id="description_ru" name="description_ru" required></textarea><br>
+        
+        <!-- Picture URLs -->
+        <label for="picture1">Picture URL 1:</label><br>
+        <input type="url" id="picture1" name="picture1" required><br>
+        
+        <label for="picture2">Picture URL 2:</label><br>
+        <input type="url" id="picture2" name="picture2" required><br>
+        
+        <label for="picture3">Picture URL 3:</label><br>
+        <input type="url" id="picture3" name="picture3" required><br>
+        
+        <button type="submit">Add Item</button>
+    </form>
+    
+    <h3>Existing Items</h3>
+    <ul>
+        <% items.forEach(item => { %>
+            <div class="item">
+                <form action="/admin/update-item/<%= item._id %>" method="POST">
+                    <!-- Input fields for updating item details -->
+                    <label for="name_en">Title of news (English)</label>
+                    <input type="text" id="name_en" name="name_en" value="<%= item.name_en %>">
+                    
+                    <label for="name_ru">Заголовок новости (Russian)</label>
+                    <input type="text" id="name_ru" name="name_ru" value="<%= item.name_ru %>">
+                    
+                    <label for="description_en">Description of news (English)</label>
+                    <textarea id="description_en" name="description_en"><%= item.description_en %></textarea>
+                    
+                    <label for="description_ru">Описание новостей(Russian)</label>
+                    <textarea id="description_ru" name="description_ru"><%= item.description_ru %></textarea>
+                    
+                    <label for="picture1">Picture 1</label>
+                    <input type="text" id="picture1" name="picture1" value="<%= item.picture1 %>">
+                    
+                    <label for="picture2">Picture 2</label>
+                    <input type="text" id="picture2" name="picture2" value="<%= item.picture2 %>">
+                    
+                    <label for="picture3">Picture 3</label>
+                    <input type="text" id="picture3" name="picture3" value="<%= item.picture3 %>">
+                    
+                    <button type="submit">Update</button>
+                </form>
+                <label for="picture2">Creation date:</label>
+                <label for="picture2"><%= item.createdAt %></label>
+                <label for="picture2">Updation date</label>
+                <label for="picture2"><%= item.updatedAt %></label>
+                <form action="/admin/delete-item/<%= item._id %>" method="POST">
+                    <button type="submit">Delete</button>
+                </form>
+                <br>
+                <br>
+            </div>
+        <% }) %>
+    </ul>
+
+    <a href="/logout">Logout</a>
+</body>
+</html>

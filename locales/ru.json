@@ -1,0 +1,10 @@
+{
+    "navbar.adminPanel": "Панель администратора",
+    "navbar.exploreMarket": "Исследовать рынок",
+    "navbar.office": "Офис",
+    "navbar.logout": "Выйти",
+    "navbar.signup":"Регистрация",
+    "navbar.login":"Войти",
+    "office.title":"Добро пожаловать в личный кабинет",
+    "office.balance":"Ваш баланс"
+}
