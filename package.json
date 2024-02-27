@@ -13,10 +13,9 @@
   "name": "finalweb",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"node routes/index.js"
+    "start": "node routes/index.js"
   },
   "author": "",
   "license": "ISC",
