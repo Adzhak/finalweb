@@ -48,9 +48,12 @@ Coingecko API used to monitor BTC currency (funny fact: in night I completed thi
 
 In explore market page user able to monitor stock market and save its history.
 In office page user able to make virtual trading, by selling or buying btc
+
 ##Admin panel
   In admin panel it is presented REST api usage, where admin able to create news, that will be displayed on the main page. It is also possible to update or delete news.
 ##Multi language
   Site supports two languages: russian and english. Admin also able to fill information about news on both languages and they will be displayed, according to the language that will be chosen in main page.
+  
 P.S. That project was a great expierience for me. I will remember those 2 nights for a long time. I expirienced everything:anger, helplessness, satisfaction, joy, despair, however, I did it and I think that I did well and the most of all, I want to believe that you will think so. Maybe you will not read this, but you are one of the best teachers in this university, with whom i learned a lot. Thank you❤️, D.B. With the best wishes...
+
 Adilet Zhaksylyk, SE-2207
