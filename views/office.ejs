@@ -10,6 +10,37 @@
     <p>Your USDT Balance: <%= user.balance %></p>
     <p>Your BTC Balance: <%= user.btc %></p>
     <script>
+        document.getElementById('convertForm').addEventListener('submit', function(event) {
+  event.preventDefault(); // Prevent the default form submission
+  const userName = '<%= user.name %>'; // The logged-in user's name
+  const amount = document.getElementById('amount').value; // The amount entered by the user
+  const convertTo = this.getAttribute('data-convert-to'); // This should be set based on the button clicked
+
+  convertCurrency(userName, amount, convertTo);
+});
+
+function convertCurrency(userName, amount, convertTo) {
+  fetch('/convert-currency', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userName,
+      amount,
+      convertTo,
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Update the UI with the new balances
+    document.getElementById('result').innerText = `Conversion successful. New USDT Balance: ${data.usdBalance}, New BTC Balance: ${data.btcBalance}`;
+    // Refresh the balance display elements
+    document.querySelector('p#usdtBalance').innerText = `Your USDT Balance: ${data.usdBalance}`;
+    document.querySelector('p#btcBalance').innerText = `Your BTC Balance: ${data.btcBalance}`;
+  })
+  .catch(error => console.error('Error:', error));
+}
         // Function to get the current BTC rate and display it
         function getCurrentRate() {
           fetch('/get-btc-rate')

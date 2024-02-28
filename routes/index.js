@@ -17,24 +17,98 @@ app.use(express.urlencoded({extended: false}));
 
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser'); // Ensure body-parser is used for form data
-
-
-const updateUserBalance = async (name, newUsdBalance, newBtcBalance) => {
-    // Find the user by ID and update their balance
-    await collection.findByIdAndUpdate(name, {
-      $set: {
-        usdBalance: newUsdBalance,
-        btcBalance: newBtcBalance
-      }
-    });
-  };
-
-
 // Connect to MongoDB
 mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.log(err));
-
+  const { MongoClient } = require('mongodb');
+  
+  // This function gets the current BTC rate from some API
+  async function getCurrentBtcRate() {
+    try {
+      const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+      const btcRate = data.bitcoin.usd; // Replace 'rate' with actual path to rate in API response
+      return btcRate;
+    } catch (error) {
+      console.error('Error fetching BTC rate:', error);
+      throw error;
+    }
+  }
+  
+  // This function updates the user's balance in the database
+  async function updateUserBalance(name, usdAmount, btcAmount, convertTo) {
+    const client = await MongoClient.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    const users = client.db("YourDatabaseName").collection("users"); // replace YourDatabaseName with your actual database name
+    const user = await users.findOne({ name: name });
+  
+    if (!user) {
+      throw new Error('User not found');
+    }
+  
+    let updatedUsdBalance, updatedBtcBalance;
+  
+    if (convertTo === 'BTC') {
+      if (user.balance < usdAmount) {
+        throw new Error('Not enough USD balance');
+      }
+      updatedUsdBalance = user.balance - usdAmount;
+      updatedBtcBalance = user.btc + btcAmount;
+    } else {
+      if (user.btc < btcAmount) {
+        throw new Error('Not enough BTC balance');
+      }
+      updatedUsdBalance = user.balance + usdAmount;
+      updatedBtcBalance = user.btc - btcAmount;
+    }
+  
+    await users.updateOne(
+      { name: name },
+      {
+        $set: {
+          balance: updatedUsdBalance,
+          btc: updatedBtcBalance,
+        },
+      }
+    );
+  
+    await client.close();
+  
+    return { updatedUsdBalance, updatedBtcBalance };
+  }
+  
+  // The route that handles the conversion
+  app.post('/convert-currency', async (req, res) => {
+    const { userName, amount, convertTo } = req.body;
+  
+    try {
+      // Assuming the amount is always given in the currency being converted from
+      const currentBtcRate = await getCurrentBtcRate();
+      let usdAmount, btcAmount;
+  
+      if (convertTo === 'BTC') {
+        // Convert USD to BTC
+        usdAmount = parseFloat(amount);
+        btcAmount = usdAmount / currentBtcRate;
+      } else {
+        // Convert BTC to USD
+        btcAmount = parseFloat(amount);
+        usdAmount = btcAmount * currentBtcRate;
+      }
+  
+      // Update the user's balance in the database
+      const { updatedUsdBalance, updatedBtcBalance } = await updateUserBalance(userName, usdAmount, btcAmount, convertTo);
+  
+      res.json({
+        message: 'Currency converted successfully',
+        usdBalance: updatedUsdBalance,
+        btcBalance: updatedBtcBalance,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  
 const historySchema = new mongoose.Schema({
   timestamp: Date,
   data: Object,
