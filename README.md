@@ -1,7 +1,10 @@
 IMPORTANT:
+
 Login of admin: Adilet
+
 Password of admin: Adilet
-Deployment link: finalweb-7kki.onrender.com
+
+Deployment link: finalweb-7kki.onrender.com (loads very long)
 
 
 # Financial platform
